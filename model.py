@@ -30,7 +30,7 @@ class cnn_lstm_mfcc(nn.Module):
 
 		self.initialize_params()
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -99,7 +99,7 @@ class cnn_lstm_fb(nn.Module):
 
 		self.initialize_params()
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -270,7 +270,7 @@ class ResNet_fb(nn.Module):
 
 		self.attention = SelfAttention(512)
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -345,7 +345,7 @@ class ResNet_mfcc(nn.Module):
 
 		self.attention = SelfAttention(512)
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -416,7 +416,7 @@ class ResNet_stats(nn.Module):
 
 		self.initialize_params()
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -492,7 +492,7 @@ class ResNet_lstm(nn.Module):
 
 		self.attention = SelfAttention(512)
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -536,12 +536,8 @@ class ResNet_lstm(nn.Module):
 		batch_size = x.size(1)
 		seq_size = x.size(0)
 
-		h0 = torch.zeros(2*2, batch_size, 256)
-		c0 = torch.zeros(2*2, batch_size, 256)
-
-		if x.is_cuda:
-			h0 = h0.cuda()
-			c0 = c0.cuda()
+		h0 = torch.zeros(2*2, batch_size, 256).to(x.device)
+		c0 = torch.zeros(2*2, batch_size, 256).to(x.device)
 
 		out_seq, (h_, c_) = self.lstm(x, (h0, c0))
 
@@ -617,7 +613,7 @@ class lcnn_9layers(nn.Module):
 		self.fc1 = mfm(128, 128, type=0)
 		self.fc2 = nn.Linear(128, n_z)
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':
@@ -663,7 +659,7 @@ class lcnn_29layers_v2(nn.Module):
 
 		self.fc1 = nn.Linear(128, n_z)
 
-		if proj_size:
+		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
 				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
 			elif sm_type=='am_softmax':

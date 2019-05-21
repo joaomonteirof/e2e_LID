@@ -9,13 +9,14 @@ import torch.utils.data
 import model as model_
 from data_load import Loader, Loader_softmax, Loader_mining
 import os
-import sysimport numpy as np
+import sys
+import numpy as np
 from time import sleep
 
 def set_np_randomseed(worker_id):
 	np.random.seed(np.random.get_state()[1][0]+worker_id)
 
-def set_device(trials=10):
+def get_freer_gpu(trials=10):
 	a = torch.rand(1)
 
 	for i in range(torch.cuda.device_count()):
@@ -67,7 +68,7 @@ if args.cuda:
 
 if args.mine_triplets:
 	train_dataset = Loader_mining(hdf5_name = args.train_hdf_file, max_nb_frames = args.n_frames, n_cycles=args.n_cycles)
-elif args.softmax:
+elif args.softmax!='none':
 	train_dataset = Loader_softmax(hdf5_name = args.train_hdf_file, max_nb_frames = args.n_frames, n_cycles=args.n_cycles)
 else:
 	train_dataset = Loader(hdf5_name = args.train_hdf_file, max_nb_frames = args.n_frames, n_cycles=args.n_cycles)
@@ -75,10 +76,7 @@ else:
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, worker_init_fn=set_np_randomseed)
 
 if args.valid_hdf_file is not None:
-	if args.valid_data_info_path is not None:
-		valid_dataset = Loader_softmax(hdf5_name = args.valid_hdf_file, utt2spk2utt_path = args.valid_data_info_path, max_nb_frames = args.n_frames, n_cycles=args.valid_n_cycles)
-	else:
-		valid_dataset = Loader_softmax(hdf5_name = args.valid_hdf_file, utt2spk2utt_path = args.data_info_path, max_nb_frames = args.n_frames, n_cycles=args.valid_n_cycles)
+	valid_dataset = Loader_softmax(hdf5_name = args.valid_hdf_file, max_nb_frames = args.n_frames, n_cycles=args.valid_n_cycles)
 	valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, worker_init_fn=set_np_randomseed)
 else:
 	valid_loader=None

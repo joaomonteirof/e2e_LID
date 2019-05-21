@@ -25,7 +25,7 @@ class TrainLoop(object):
 
 		self.save_epoch_fmt = os.path.join(self.checkpoint_path, 'checkpoint_{}ep.pt')
 		self.cuda_mode = cuda
-		self.softmax = softmax
+		self.softmax = softmax!='none'
 		self.mining = mining
 		self.model = model
 		self.swap = swap
@@ -159,9 +159,9 @@ class TrainLoop(object):
 
 		if self.softmax:
 			if self.cuda_mode:
-				y = y.cuda()
+				y = y.cuda().squeeze()
 
-			ce = F.cross_entropy(self.model.out_proj(embeddings), y.squeeze())
+			ce = F.cross_entropy(self.model.out_proj(embeddings,y), y)
 			loss += ce
 			loss.backward()
 			self.optimizer.step()
