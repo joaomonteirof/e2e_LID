@@ -6,7 +6,7 @@ from utils.losses import AMSoftmax, Softmax
 
 
 class cnn_lstm_mfcc(nn.Module):
-	def __init__(self, n_z=256, proj_size=None, ncoef=23, sm_type='none'):
+	def __init__(self, n_z=256, proj_size=0, ncoef=23, sm_type='none'):
 		super(cnn_lstm_mfcc, self).__init__()
 
 		self.features = nn.Sequential(
@@ -75,7 +75,7 @@ class cnn_lstm_mfcc(nn.Module):
 				layer.bias.data.zero_()
 
 class cnn_lstm_fb(nn.Module):
-	def __init__(self, n_z=256, proj_size=None, sm_type='none'):
+	def __init__(self, n_z=256, proj_size=0, sm_type='none'):
 		super(cnn_lstm_fb, self).__init__()
 
 		self.features = nn.Sequential(
@@ -245,7 +245,7 @@ class Bottleneck(nn.Module):
 		return out
 
 class ResNet_fb(nn.Module):
-	def __init__(self, n_z=256, layers=[2,2,2,2], block=Bottleneck, proj_size=None, sm_type='none'):
+	def __init__(self, n_z=256, layers=[2,2,2,2], block=Bottleneck, proj_size=0, sm_type='none'):
 		self.inplanes = 16
 		super(ResNet_fb, self).__init__()
 	
@@ -323,7 +323,7 @@ class ResNet_fb(nn.Module):
 		return mu
 
 class ResNet_mfcc(nn.Module):
-	def __init__(self, n_z=256, layers=[3,4,6,3], block=Bottleneck, proj_size=None, ncoef=13, sm_type='none'):
+	def __init__(self, n_z=256, layers=[3,4,6,3], block=Bottleneck, proj_size=0, ncoef=13, sm_type='none'):
 		self.inplanes = 16
 		super(ResNet_mfcc, self).__init__()
 	
@@ -396,7 +396,7 @@ class ResNet_mfcc(nn.Module):
 		return mu
 
 class ResNet_stats(nn.Module):
-	def __init__(self, n_z=256, layers=[3,4,6,3], block=Bottleneck, proj_size=None, ncoef=13, sm_type='none'):
+	def __init__(self, n_z=256, layers=[3,4,6,3], block=Bottleneck, proj_size=0, ncoef=13, sm_type='none'):
 		self.inplanes = 16
 		super(ResNet_stats, self).__init__()
 	
@@ -468,7 +468,7 @@ class ResNet_stats(nn.Module):
 		return mu
 
 class ResNet_lstm(nn.Module):
-	def __init__(self, n_z=256, layers=[3,4,6,3], block=Bottleneck, proj_size=None, ncoef=23, sm_type='none'):
+	def __init__(self, n_z=256, layers=[3,4,6,3], block=Bottleneck, proj_size=0, ncoef=23, sm_type='none'):
 		self.inplanes = 16
 		super(ResNet_lstm, self).__init__()
 	
@@ -589,7 +589,7 @@ class resblock(nn.Module):
 		return out
 
 class lcnn_9layers(nn.Module):
-	def __init__(self, n_z=256, ncoef=13, proj_size=None, sm_type='none'):
+	def __init__(self, n_z=256, ncoef=13, proj_size=0, sm_type='none'):
 		super(lcnn_9layers, self).__init__()
 
 		self.conv1 = nn.Conv2d(1, 16, kernel_size=(ncoef,3), stride=(1,1), padding=(0,1), bias=False)
@@ -637,7 +637,7 @@ class lcnn_9layers(nn.Module):
 		return out
 
 class lcnn_29layers_v2(nn.Module):
-	def __init__(self, block=resblock, layers=[1, 2, 3, 4], n_z=256, ncoef=13, proj_size=None, sm_type='none'):
+	def __init__(self, block=resblock, layers=[1, 2, 3, 4], n_z=256, ncoef=13, proj_size=0, sm_type='none'):
 		super(lcnn_29layers_v2, self).__init__()
 
 		self.conv1_ = nn.Conv2d(1, 16, kernel_size=(ncoef,3), stride=(1,1), padding=(0,1), bias=False)

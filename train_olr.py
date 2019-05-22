@@ -87,21 +87,21 @@ else:
 	device = None
 
 if args.model == 'mfcc':
-	model = model_.cnn_lstm_mfcc(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, ncoef=args.ncoef, sm_type=args.softmax)
+	model = model_.cnn_lstm_mfcc(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 elif args.model == 'fb':
-	model = model_.cnn_lstm_fb(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, sm_type=args.softmax)
+	model = model_.cnn_lstm_fb(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, sm_type=args.softmax)
 elif args.model == 'resnet_fb':
-	model = model_.ResNet_fb(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, sm_type=args.softmax)
+	model = model_.ResNet_fb(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, sm_type=args.softmax)
 elif args.model == 'resnet_mfcc':
-	model = model_.ResNet_mfcc(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, ncoef=args.ncoef, sm_type=args.softmax)
+	model = model_.ResNet_mfcc(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 elif args.model == 'resnet_lstm':
-	model = model_.ResNet_lstm(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, ncoef=args.ncoef, sm_type=args.softmax)
+	model = model_.ResNet_lstm(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 elif args.model == 'resnet_stats':
-	model = model_.ResNet_stats(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, ncoef=args.ncoef, sm_type=args.softmax)
+	model = model_.ResNet_stats(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 elif args.model == 'lcnn9_mfcc':
-	model = model_.lcnn_9layers(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, ncoef=args.ncoef, sm_type=args.softmax)
+	model = model_.lcnn_9layers(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 elif args.model == 'lcnn29_mfcc':
-	model = model_.lcnn_29layers_v2(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax is not None else None, ncoef=args.ncoef, sm_type=args.softmax)
+	model = model_.lcnn_29layers_v2(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 
 if args.pretrained_path is not None:
 	ckpt = torch.load(args.pretrained_path, map_location = lambda storage, loc: storage)

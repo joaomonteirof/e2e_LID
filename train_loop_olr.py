@@ -135,8 +135,9 @@ class TrainLoop(object):
 				utterances = utterances.cuda()
 
 			embeddings = self.model.forward(utterances)
+			embeddings_norm = torch.div(embeddings, torch.norm(embeddings, 2, 1).unsqueeze(1).expand_as(embeddings))
 
-			triplets_idx = self.harvester.harvest_triplets(embeddings.detach().cpu(), y.numpy())
+			triplets_idx = self.harvester.harvest_triplets(embeddings_norm.detach().cpu(), y.numpy())
 
 			if self.cuda_mode:
 				triplets_idx = triplets_idx.cuda()
@@ -153,7 +154,7 @@ class TrainLoop(object):
 				utt_a, utt_p, utt_n = utt_a.cuda(), utt_p.cuda(), utt_n.cuda()
 
 			emb_a, emb_p, emb_n = self.model.forward(utt_a), self.model.forward(utt_p), self.model.forward(utt_n)
-			embeddings = emb_a
+			embeddings_norm = torch.div(emb_a, torch.norm(emb_a, 2, 1).unsqueeze(1).expand_as(emb_a))
 
 		loss = self.triplet_loss(emb_a, emb_p, emb_n, swap=self.swap)
 
@@ -161,7 +162,7 @@ class TrainLoop(object):
 			if self.cuda_mode:
 				y = y.cuda().squeeze()
 
-			ce = F.cross_entropy(self.model.out_proj(embeddings,y), y)
+			ce = F.cross_entropy(self.model.out_proj(embeddings_norm,y), y)
 			loss += ce
 			loss.backward()
 			self.optimizer.step()
