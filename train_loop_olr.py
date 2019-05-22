@@ -135,7 +135,7 @@ class TrainLoop(object):
 				utterances = utterances.cuda()
 
 			embeddings = self.model.forward(utterances)
-			embeddings_norm = torch.div(embeddings, torch.norm(embeddings, 2, 1).unsqueeze(1).expand_as(embeddings))
+			embeddings_norm = F.normalize(embeddings, p=2, dim=1)
 
 			triplets_idx = self.harvester.harvest_triplets(embeddings_norm.detach().cpu(), y.numpy())
 
@@ -154,7 +154,7 @@ class TrainLoop(object):
 				utt_a, utt_p, utt_n = utt_a.cuda(), utt_p.cuda(), utt_n.cuda()
 
 			emb_a, emb_p, emb_n = self.model.forward(utt_a), self.model.forward(utt_p), self.model.forward(utt_n)
-			embeddings_norm = torch.div(emb_a, torch.norm(emb_a, 2, 1).unsqueeze(1).expand_as(emb_a))
+			embeddings_norm = F.normalize(emb_a, p=2, dim=1)
 
 		loss = self.triplet_loss(emb_a, emb_p, emb_n, swap=self.swap)
 
@@ -188,6 +188,8 @@ class TrainLoop(object):
 			y = y.cuda()
 
 		emb_a = self.model.forward(xa)
+
+		emb_a = F.normalize(emb_a, p=2, dim=1)
 
 		output = self.model.out_proj(emb_a)
 
