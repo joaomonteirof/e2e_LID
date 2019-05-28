@@ -40,8 +40,12 @@ def prep_feats(data_, min_nb_frames=50):
 def compute_metrics(y, y_score):
 	fpr, tpr, thresholds = metrics.roc_curve(y, y_score, pos_label=1)
 	fnr = 1 - tpr
-	eer_threshold = thresholds[np.nanargmin(np.abs(fnr-fpr))]
-	eer = fpr[np.nanargmin(np.abs(fnr-fpr))]
+	t = np.nanargmin(np.abs(fnr-fpr))
+
+	eer_threshold = thresholds[t]
+
+	eer_low, eer_high = min(fnr[t],fpr[t]), max(fnr[t],fpr[t])
+	eer = (eer_low+eer_high)*0.5
 
 	auc = metrics.auc(fpr, tpr)
 
