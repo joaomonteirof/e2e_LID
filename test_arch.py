@@ -10,7 +10,7 @@ from utils.losses import AMSoftmax, Softmax
 
 # Training settings
 parser = argparse.ArgumentParser(description='Test new architectures')
-parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc', 'all'], default='fb', help='Model arch according to input type')
+parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc', 'TDNN', 'FTDNN', 'all'], default='fb', help='Model arch according to input type')
 parser.add_argument('--latent-size', type=int, default=200, metavar='S', help='latent layer dimension (default: 200)')
 parser.add_argument('--ncoef', type=int, default=13, metavar='N', help='number of MFCCs (default: 23)')
 parser.add_argument('--softmax', action='store_true', default=False, help='Test also sm layers')
@@ -56,6 +56,16 @@ if args.model == 'lcnn29_mfcc' or args.model == 'all':
 	model = model_.lcnn_29layers_v2(n_z=args.latent_size, ncoef=args.ncoef)
 	mu = model.forward(batch)
 	print('lcnn29_mfcc', mu.size())
+if args.model == 'TDNN' or args.model == 'all':
+	batch = torch.rand(3, 1, args.ncoef, 400)
+	model = model_.TDNN(n_z=args.latent_size, ncoef=args.ncoef)
+	mu = model.forward(batch)
+	print('TDNN', mu.size())
+if args.model == 'FTDNN' or args.model == 'all':
+	batch = torch.rand(3, 1, args.ncoef, 400)
+	model = model_.FTDNN(n_z=args.latent_size, ncoef=args.ncoef)
+	mu = model.forward(batch)
+	print('FTDNN', mu.size())
 
 if args.softmax:
 	batch = torch.rand(3, mu.size(0))

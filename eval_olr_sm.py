@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	parser.add_argument('--sil-data', type=str, default='./data/', metavar='Path', help='Path to input data with silence')
 	parser.add_argument('--trials-path', type=str, default='./data/trials', metavar='Path', help='Path to trials file')
 	parser.add_argument('--cp-path', type=str, default=None, metavar='Path', help='Path for file containing model')
-	parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc'], default='fb', help='Model arch according to input type')
+	parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc', 'TDNN', 'FTDNN'], default='fb', help='Model arch according to input type')
 	parser.add_argument('--latent-size', type=int, default=200, metavar='S', help='latent layer dimension (default: 200)')
 	parser.add_argument('--ncoef', type=int, default=13, metavar='N', help='number of MFCCs (default: 13)')
 	parser.add_argument('--scores-file', type=str, default='./scores.out', metavar='Path', help='Path for saving computed scores')
@@ -123,6 +123,10 @@ if __name__ == '__main__':
 		model = model_.lcnn_9layers(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
 	elif args.model == 'lcnn29_mfcc':
 		model = model_.lcnn_29layers_v2(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+	elif args.model == 'TDNN':
+		model = model_.TDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+	elif args.model == 'FTDNN':
+		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
 
 	ckpt = torch.load(args.cp_path, map_location = lambda storage, loc: storage)
 	model.load_state_dict(ckpt['model_state'], strict=True)

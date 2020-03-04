@@ -46,7 +46,7 @@ parser.add_argument('--checkpoint-path', type=str, default=None, metavar='Path',
 parser.add_argument('--pretrained-path', type=str, default=None, metavar='Path', help='Path for pre trained model')
 parser.add_argument('--train-hdf-file', type=str, default='./data/train.hdf', metavar='Path', help='Path to hdf data')
 parser.add_argument('--valid-hdf-file', type=str, default=None, metavar='Path', help='Path to hdf data')
-parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc'], default='fb', help='Model arch according to input type')
+parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc', 'TDNN', 'FTDNN'], default='fb', help='Model arch according to input type')
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=4)
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
 parser.add_argument('--save-every', type=int, default=1, metavar='N', help='how many epochs to wait before logging training status. Default is 1')
@@ -102,6 +102,10 @@ elif args.model == 'lcnn9_mfcc':
 	model = model_.lcnn_9layers(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 elif args.model == 'lcnn29_mfcc':
 	model = model_.lcnn_29layers_v2(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
+elif args.model == 'TDNN':
+	model = model_.TDNN(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
+elif args.model == 'FTDNN':
+	model = model_.FTDNN(n_z=args.latent_size, proj_size=len(train_dataset.speakers_list) if args.softmax!='none' else 0, ncoef=args.ncoef, sm_type=args.softmax)
 
 if args.pretrained_path is not None:
 	ckpt = torch.load(args.pretrained_path, map_location = lambda storage, loc: storage)
