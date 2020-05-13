@@ -679,21 +679,22 @@ class lcnn_29layers_v2(nn.Module):
 		x = self.activation(self.bn1(x))
 
 		x = self.conv1(x)
-		x = F.max_pool2d(x, 2) + F.avg_pool2d(x, 2)
+
+		x = F.max_pool2d(x, 2, ceil_mode=True) + F.avg_pool2d(x, 2, ceil_mode=True)
 
 		x = self.block1(x)
 		x = self.group1(x)
-		x = F.max_pool2d(x, 2) + F.avg_pool2d(x, 2)
+		x = F.max_pool2d(x, 2, ceil_mode=True) + F.avg_pool2d(x, 2, ceil_mode=True)
 
 		x = self.block2(x)
 		x = self.group2(x)
-		x = F.max_pool2d(x, 2) + F.avg_pool2d(x, 2)
+		x = F.max_pool2d(x, 2, ceil_mode=True) + F.avg_pool2d(x, 2, ceil_mode=True)
 
 		x = self.block3(x)
 		x = self.group3(x)
 		x = self.block4(x)
 		x = self.group4(x)
-		x = F.max_pool2d(x, 2) + F.avg_pool2d(x, 2)
+		x = F.max_pool2d(x, 2, ceil_mode=True) + F.avg_pool2d(x, 2, ceil_mode=True)
 		x = x.squeeze(2)
 
 		stats = self.attention(x.permute(0,2,1).contiguous())
@@ -707,8 +708,8 @@ class StatisticalPooling(nn.Module):
 
 	def forward(self, x):
 		# x is 3-D with axis [B, feats, T]
-		mu = x.mean(dim=2, keepdim=True)
-		std = (x+torch.randn_like(x)*1e-6).std(dim=2, keepdim=True)
+		mu = x.mean(dim=2, keepdim=False)
+		std = (x+torch.randn_like(x)*1e-6).std(dim=2, keepdim=False)
 		return torch.cat((mu, std), dim=1)
 
 class TDNN(nn.Module):
@@ -733,14 +734,14 @@ class TDNN(nn.Module):
 
 		self.pooling = StatisticalPooling()
 
-		self.post_pooling_1 = nn.Sequential(nn.Conv1d(3000, 512, 1),
+		self.post_pooling_1 = nn.Sequential(nn.Linear(3000, 512),
 			nn.BatchNorm1d(512),
 			nn.ReLU(inplace=True) )
 
-		self.post_pooling_2 = nn.Sequential(nn.Conv1d(512, 512, 1),
+		self.post_pooling_2 = nn.Sequential(nn.Linear(512, 512),
 			nn.BatchNorm1d(512),
 			nn.ReLU(inplace=True),
-			nn.Conv1d(512, n_z, 1) )
+			nn.Linear(512, n_z) )
 
 		if proj_size>0 and sm_type!='none':
 			if sm_type=='softmax':
@@ -757,7 +758,77 @@ class TDNN(nn.Module):
 		fc = self.post_pooling_1(x)
 		x = self.post_pooling_2(fc)
 
-		return x.squeeze(-1)
+		return x
+
+class TDNN_multipool(nn.Module):
+
+	def __init__(self, n_z=256, ncoef=13, proj_size=0, sm_type='none'):
+		super().__init__()
+
+		self.model_1 = nn.Sequential( nn.Conv1d(ncoef, 512, 5, padding=2),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+		self.model_2 = nn.Sequential( nn.Conv1d(512, 512, 5, padding=2),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+		self.model_3 = nn.Sequential( nn.Conv1d(512, 512, 5, padding=3),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+		self.model_4 = nn.Sequential( nn.Conv1d(512, 512, 7),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+		self.model_5 = nn.Sequential( nn.Conv1d(512, 512, 1),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+
+		self.stats_pooling = StatisticalPooling()
+
+		self.post_pooling_1 = nn.Sequential(nn.Linear(2048, 512),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+
+		self.post_pooling_2 = nn.Sequential(nn.Linear(512, 512),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512),
+			nn.Linear(512, n_z) )
+
+		if proj_size>0 and sm_type!='none':
+			if sm_type=='softmax':
+				self.out_proj=Softmax(input_features=n_z, output_features=proj_size)
+			elif sm_type=='am_softmax':
+				self.out_proj=AMSoftmax(input_features=n_z, output_features=proj_size)
+			else:
+				raise NotImplementedError
+
+	def forward(self, x):
+
+		x_pool = []
+
+		x = x.squeeze(1)
+
+		x_1 = self.model_1(x)
+		x_pool.append(self.stats_pooling(x_1).unsqueeze(-1))
+
+		x_2 = self.model_2(x_1)
+		x_pool.append(self.stats_pooling(x_2).unsqueeze(-1))
+
+		x_3 = self.model_3(x_2)
+		x_pool.append(self.stats_pooling(x_3).unsqueeze(-1))
+
+		x_4 = self.model_4(x_3)
+		x_pool.append(self.stats_pooling(x_4).unsqueeze(-1))
+
+		x_5 = self.model_5(x_4)
+		x_pool.append(self.stats_pooling(x_5).unsqueeze(-1))
+
+		x_pool = torch.cat(x_pool, -1)
+
+		x = self.stats_pooling(x_pool)
+
+		fc = self.post_pooling_1(x)
+		x = self.post_pooling_2(fc)
+
+		return x
 
 class SOrthConv(nn.Module):
 
