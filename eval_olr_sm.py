@@ -93,6 +93,7 @@ if __name__ == '__main__':
 	parser.add_argument('--latent-size', type=int, default=200, metavar='S', help='latent layer dimension (default: 200)')
 	parser.add_argument('--ncoef', type=int, default=13, metavar='N', help='number of MFCCs (default: 13)')
 	parser.add_argument('--scores-file', type=str, default='./scores.out', metavar='Path', help='Path for saving computed scores')
+	parser.add_argument('--softmax', choices=['none', 'softmax', 'am_softmax'], default='softmax', help='Softmax type')
 	parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables GPU use')
 	args = parser.parse_args()
 	args.cuda = True if not args.no_cuda and torch.cuda.is_available() else False
@@ -108,27 +109,27 @@ if __name__ == '__main__':
 		set_device()
 
 	if args.model == 'mfcc':
-		model = model_.cnn_lstm_mfcc(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.cnn_lstm_mfcc(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'fb':
-		model = model_.cnn_lstm_fb(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())))
+		model = model_.cnn_lstm_fb(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), sm_type=args.softmax)
 	elif args.model == 'resnet_fb':
-		model = model_.ResNet_fb(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())))
+		model = model_.ResNet_fb(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), sm_type=args.softmax)
 	elif args.model == 'resnet_mfcc':
-		model = model_.ResNet_mfcc(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.ResNet_mfcc(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'resnet_lstm':
-		model = model_.ResNet_lstm(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.ResNet_lstm(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'resnet_stats':
-		model = model_.ResNet_stats(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.ResNet_stats(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'lcnn9_mfcc':
-		model = model_.lcnn_9layers(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.lcnn_9layers(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'lcnn29_mfcc':
-		model = model_.lcnn_29layers_v2(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.lcnn_29layers_v2(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'TDNN':
-		model = model_.TDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.TDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'TDNN_multipool':
-		model = model_.TDNN_multipool(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.TDNN_multipool(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 	elif args.model == 'FTDNN':
-		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 
 	print(model)
 
