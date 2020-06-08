@@ -102,7 +102,7 @@ if __name__ == '__main__':
 	if args.cp_path is None:
 		raise ValueError('There is no checkpoint/model path. Use arg --cp-path to indicate the path!')
 
-	print('Cuda Mode is: {}'.format(args.cuda))
+	print('Cuda Mode is: {}\n'.format(args.cuda))
 
 	if args.cuda:
 		set_device()
@@ -129,6 +129,8 @@ if __name__ == '__main__':
 		model = model_.TDNN_multipool(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
 	elif args.model == 'FTDNN':
 		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef)
+
+	print(model)
 
 	ckpt = torch.load(args.cp_path, map_location = lambda storage, loc: storage)
 	model.load_state_dict(ckpt['model_state'], strict=True)
