@@ -762,7 +762,7 @@ class TDNN(nn.Module):
 
 class TDNN_multipool(nn.Module):
 
-	def __init__(self, n_z=256, ncoef=13, proj_size=0, sm_type='none'):
+	def __init__(self, n_z=256, ncoef=13, proj_size=0, sm_type='none', n_heads=16):
 		super().__init__()
 
 		self.model_1 = nn.Sequential( nn.Conv1d(ncoef, 512, 5, padding=2),
@@ -783,7 +783,9 @@ class TDNN_multipool(nn.Module):
 
 		self.stats_pooling = StatisticalPooling()
 
-		self.post_pooling_1 = nn.Sequential(nn.Linear(5*1024, 512),
+		self.multihead_pooling = nn.TransformerEncoderLayer(d_model=1024, nhead=n_heads, dim_feedforward=512, dropout=0.1)
+
+		self.post_pooling_1 = nn.Sequential(nn.Linear(1024, 512),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
 
@@ -807,21 +809,24 @@ class TDNN_multipool(nn.Module):
 		x = x.squeeze(1)
 
 		x_1 = self.model_1(x)
-		x_pool.append(self.stats_pooling(x_1))
+		x_pool.append(self.stats_pooling(x_1).unsqueeze(-1))
 
 		x_2 = self.model_2(x_1)
-		x_pool.append(self.stats_pooling(x_2))
+		x_pool.append(self.stats_pooling(x_2).unsqueeze(-1))
 
 		x_3 = self.model_3(x_2)
-		x_pool.append(self.stats_pooling(x_3))
+		x_pool.append(self.stats_pooling(x_3).unsqueeze(-1))
 
 		x_4 = self.model_4(x_3)
-		x_pool.append(self.stats_pooling(x_4))
+		x_pool.append(self.stats_pooling(x_4).unsqueeze(-1))
 
 		x_5 = self.model_5(x_4)
-		x_pool.append(self.stats_pooling(x_5))
+		x_pool.append(self.stats_pooling(x_5).unsqueeze(-1))
 
-		x_pool = torch.cat(x_pool, -1)
+		x_pool = torch.cat(x_pool, -1).permute(2,0,1)
+
+		x_pool = self.multihead_pooling(x_pool)
+		x_pool = x_pool.permute(1,2,0).mean(-1)
 
 		fc = self.post_pooling_1(x_pool)
 		x = self.post_pooling_2(fc)
