@@ -93,10 +93,8 @@ class Loader(Dataset):
 		idx1, idx2 = np.random.choice(np.arange(len(spk1_utt_list)), replace=True, size=2)
 
 		utt_1 = self.prep_utterance( self.open_file[speaker_1][spk1_utt_list[idx1]] )
-		utt_1 = torch.from_numpy( utt_1 )
 
 		utt_p = self.prep_utterance( self.open_file[speaker_1][spk1_utt_list[idx2]] )
-		utt_p = torch.from_numpy( utt_p )
 
 		neg_speaker_idx = index
 
@@ -108,7 +106,6 @@ class Loader(Dataset):
 
 		n_idx = np.random.randint(len(nspk_utt_list))
 		utt_n = self.prep_utterance( self.open_file[neg_speaker][nspk_utt_list[n_idx]] )
-		utt_n = torch.from_numpy( utt_n ).float().contiguous()
 
 		return utt_1, utt_p, utt_n
 
@@ -124,6 +121,8 @@ class Loader(Dataset):
 			mul = int(np.ceil(self.max_nb_frames/data.shape[-1]))
 			data_ = np.tile(data, (1, 1, mul))
 			data_ = data_[:, :, :self.max_nb_frames]
+
+		data_ = torch.from_numpy(data_).float().contiguous()
 
 		if self.augment:
 			data_ = augment_spec(data_)
@@ -168,10 +167,8 @@ class Loader_softmax(Dataset):
 		idx1, idx2 = np.random.choice(np.arange(len(spk1_utt_list)), replace=True, size=2)
 
 		utt_1 = self.prep_utterance( self.open_file[speaker_1][spk1_utt_list[idx1]] )
-		utt_1 = torch.from_numpy( utt_1 )
 
 		utt_p = self.prep_utterance( self.open_file[speaker_1][spk1_utt_list[idx2]] )
-		utt_p = torch.from_numpy( utt_p )
 
 		neg_speaker_idx = index
 
@@ -183,7 +180,6 @@ class Loader_softmax(Dataset):
 
 		n_idx = np.random.randint(len(nspk_utt_list))
 		utt_n = self.prep_utterance( self.open_file[neg_speaker][nspk_utt_list[n_idx]] )
-		utt_n = torch.from_numpy( utt_n ).float().contiguous()
 
 		return utt_1, utt_p, utt_n, torch.LongTensor([index])
 
@@ -199,6 +195,8 @@ class Loader_softmax(Dataset):
 			mul = int(np.ceil(self.max_nb_frames/data.shape[-1]))
 			data_ = np.tile(data, (1, 1, mul))
 			data_ = data_[:, :, :self.max_nb_frames]
+
+		data_ = torch.from_numpy(data_).float().contiguous()
 
 		if self.augment:
 			data_ = augment_spec(data_)
@@ -247,7 +245,7 @@ class Loader_mining(Dataset):
 		for i in range(self.examples_per_speaker):
 			idx = np.random.randint(len(utt_list))
 			utt = self.prep_utterance( self.open_file[speaker][utt_list[idx]] )
-			utterances.append( torch.from_numpy( utt ).float().contiguous() )
+			utterances.append( utt )
 
 		return torch.cat(utterances, 0).unsqueeze(1), torch.LongTensor(self.examples_per_speaker*[speaker_idx])
 
@@ -264,105 +262,10 @@ class Loader_mining(Dataset):
 			data_ = np.tile(data, (1, 1, mul))
 			data_ = data_[:, :, :self.max_nb_frames]
 
+		data_ = torch.from_numpy(data_).float().contiguous()
+
 		if self.augment:
 			data_ = augment_spec(data_)
-
-		return data_
-
-	def create_lists(self):
-
-		open_file = h5py.File(self.hdf5_name, 'r')
-
-		self.speakers_list = list(open_file)
-
-		self.spk2utt = {}
-
-		for spk in self.speakers_list:
-
-			self.spk2utt[spk] = list(open_file[spk])
-
-		open_file.close()
-
-class Loader_test(Dataset):
-
-	def __init__(self, hdf5_name, max_nb_frames, examples_per_speaker=5):
-		super(Loader_test, self).__init__()
-		self.hdf5_name = hdf5_name
-		self.max_nb_frames = int(max_nb_frames)
-		self.examples_per_speaker = int(examples_per_speaker)
-		self.last_index = 0
-
-		self.create_lists()
-		self.set_maxlen_spklist()
-		self.set_indices()
-
-		self.open_file = None
-		self.n_speakers = len(self.speakers_list)
-
-	def __getitem__(self, index):
-
-		speaker_idx = index % self.n_speakers
-		second_ind = index // self.n_speakers
-
-		if not self.open_file: self.open_file = h5py.File(self.hdf5_name, 'r')
-
-		if index < self.last_index:
-			self.set_indices()
-
-		speaker = self.speakers_list[speaker_idx]
-		utt_list = self.spk2utt[speaker]
-
-		idxs, utterances = self.indices[speaker][second_ind], []
-
-		for i in idxs:
-			utt = self.prep_utterance( self.open_file[speaker][utt_list[i]] )
-			utterances.append( torch.from_numpy( utt ).float().contiguous() )
-
-		self.last_index = index
-
-		return torch.cat(utterances, 0).unsqueeze(1), torch.LongTensor(self.examples_per_speaker*[speaker_idx])
-
-	def __len__(self):
-		return len(self.speakers_list)*len(self.indices[self.speakers_list[0]])
-
-	def set_indices(self):
-		indices = {}
-
-		for spk in self.spk2utt:
-			spk_len = len(self.spk2utt[spk])
-
-			if spk_len >= self.maxlen:
-				spk_ind = np.random.choice(np.arange(spk_len), size=self.maxlen, replace=False)
-			else:
-				spk_ind = np.concatenate([np.random.permutation(np.arange(spk_len)), np.random.randint(0, spk_len, self.maxlen-spk_len)], 0)
-
-			indices[spk] = strided_app(spk_ind, self.examples_per_speaker, self.examples_per_speaker)
-
-		self.indices = indices
-
-	def set_maxlen_spklist(self):
-		open_file = h5py.File(self.hdf5_name, 'r')
-		spk_list_ascii = open_file['spk_list']
-		self.speakers_list = [spk.decode('utf-8') for spk in spk_list_ascii]
-
-		length_list = []
-
-		for spk in self.spk2utt:
-			length_list.append(len(self.spk2utt[spk]))
-
-		self.maxlen = int(np.mean(length_list))
-
-		open_file.close()
-
-	def prep_utterance(self, data):
-
-		if data.shape[-1]>self.max_nb_frames:
-			ridx = np.random.randint(0, data.shape[-1]-self.max_nb_frames)
-			data_ = data[:, :, ridx:(ridx+self.max_nb_frames)]
-		else:
-			mul = int(np.ceil(self.max_nb_frames/data.shape[-1]))
-			data_ = np.tile(data, (1, 1, mul))
-			data_ = data_[:, :, :self.max_nb_frames]
 
 		return data_
 
@@ -404,7 +307,6 @@ class Loader_pretrain(Dataset):
 
 		idx = np.random.randint(len(utt_list))
 		utt = self.prep_utterance( self.open_file[speaker][utt_list[idx]] )
-		utt = torch.from_numpy(utt).float().contiguous()
 
 		return utt, torch.LongTensor([speaker_idx])
 
@@ -420,6 +322,8 @@ class Loader_pretrain(Dataset):
 			mul = int(np.ceil(self.max_nb_frames/data.shape[-1]))
 			data_ = np.tile(data, (1, 1, mul))
 			data_ = data_[:, :, :self.max_nb_frames]
+
+		data_ = torch.from_numpy(data_).float().contiguous()
 
 		if self.augment:
 			data_ = augment_spec(data_)
