@@ -52,7 +52,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S', help='random see
 parser.add_argument('--save-every', type=int, default=1, metavar='N', help='how many epochs to wait before logging training status. Default is 1')
 parser.add_argument('--ncoef', type=int, default=13, metavar='N', help='number of MFCCs (default: 13)')
 parser.add_argument('--latent-size', type=int, default=200, metavar='S', help='latent layer dimension (default: 200)')
-parser.add_argument('--n-frames', type=int, default=1000, metavar='N', help='maximum number of frames per utterance (default: 1000)')
+parser.add_argument('--n-frames', type=int, default=600, metavar='N', help='maximum number of frames per utterance (default: 600)')
 parser.add_argument('--n-cycles', type=int, default=10, metavar='N', help='cycles over speakers list to complete 1 epoch')
 parser.add_argument('--valid-n-cycles', type=int, default=1000, metavar='N', help='cycles over speakers list to complete 1 epoch')
 parser.add_argument('--patience', type=int, default=30, metavar='S', help='Epochs to wait before decreasing LR (default: 30)')
