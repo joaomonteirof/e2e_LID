@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.utils.data
 import model as model_
 from data_load import Loader, Loader_softmax, Loader_mining
+from optimizer import TransformerOptimizer
 import os
 import sys
 import numpy as np
@@ -38,9 +39,11 @@ parser = argparse.ArgumentParser(description='Speaker embbedings with contrastiv
 parser.add_argument('--batch-size', type=int, default=64, metavar='N', help='input batch size for training (default: 64)')
 parser.add_argument('--epochs', type=int, default=500, metavar='N', help='number of epochs to train (default: 500)')
 parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate (default: 0.001)')
-parser.add_argument('--alpha', type=float, default=0.99, metavar='lambda', help='RMSprop alpha (default: 0.99)')
+parser.add_argument('--momentum', type=float, default=0.9, metavar='m', help='Momentum paprameter (default: 0.9)')
 parser.add_argument('--l2', type=float, default=1e-5, metavar='L2', help='Weight decay coefficient (default: 0.00001)')
 parser.add_argument('--swap', action='store_true', default=False, help='Swaps anchor and positive in case loss is higher that way')
+parser.add_argument('--warmup', type=int, default=500, metavar='N', help='Iterations until reach lr (default: 500)')
+parser.add_argument('--smoothing', type=float, default=0.2, metavar='l', help='Label smoothing (default: 0.2)')
 parser.add_argument('--checkpoint-epoch', type=int, default=None, metavar='N', help='epoch to load for checkpointing. If None, training starts from scratch')
 parser.add_argument('--checkpoint-path', type=str, default=None, metavar='Path', help='Path for checkpointing')
 parser.add_argument('--pretrained-path', type=str, default=None, metavar='Path', help='Path for pre trained model')
@@ -61,6 +64,8 @@ parser.add_argument('--mine-triplets', action='store_true', default=False, help=
 parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables GPU use')
 args = parser.parse_args()
 args.cuda = True if not args.no_cuda and torch.cuda.is_available() else False
+
+print(args)
 
 torch.manual_seed(args.seed)
 if args.cuda:
@@ -122,16 +127,17 @@ if args.pretrained_path is not None:
 		raise
 
 if args.cuda:
-	model = model.cuda(device)
+	model = model.to(device)
 
-optimizer = optim.RMSprop(model.parameters(), lr=args.lr, alpha=args.alpha, weight_decay=args.l2)
+optimizer = TransformerOptimizer(optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.l2, nesterov=True), lr=args.lr, warmup_steps=args.warmup)
 
-trainer = TrainLoop(model, optimizer, train_loader, valid_loader, patience=args.patience, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, swap=args.swap, softmax=args.softmax, mining=args.mine_triplets, cuda=args.cuda)
+trainer = TrainLoop(model, optimizer, train_loader, valid_loader, patience=args.patience, label_smoothing=args.smoothing, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, swap=args.swap, softmax=args.softmax, mining=args.mine_triplets, label_smoothing=args.smoothing, cuda=args.cuda)
 
-print('Cuda Mode is: {}'.format(args.cuda))
-print('Swap Mode is: {}'.format(args.swap))
-print('Softmax Mode is: {}'.format(args.softmax))
-print('Mining Mode is: {}'.format(args.mine_triplets))
-print('Selected model is: {}'.format(args.model))
+print(model)
+
+print('\n')
+	for arg_key in args_dict:
+		print('{}: {}'.format(arg_key, args_dict[arg_key]))
+print('\n')
 
 trainer.train(n_epochs=args.epochs, save_every=args.save_every)

@@ -135,6 +135,8 @@ class Loader(Dataset):
 
 		self.speakers_list = list(open_file)
 
+		self.n_speakers = len(self.speakers_list)
+
 		self.spk2utt = {}
 
 		for spk in self.speakers_list:
@@ -209,6 +211,8 @@ class Loader_softmax(Dataset):
 
 		self.speakers_list = list(open_file)
 
+		self.n_speakers = len(self.speakers_list)
+
 		self.spk2utt = {}
 
 		for spk in self.speakers_list:
@@ -275,6 +279,8 @@ class Loader_mining(Dataset):
 
 		self.speakers_list = list(open_file)
 
+		self.n_speakers = len(self.speakers_list)
+
 		self.spk2utt = {}
 
 		for spk in self.speakers_list:
@@ -335,6 +341,8 @@ class Loader_pretrain(Dataset):
 		open_file = h5py.File(self.hdf5_name, 'r')
 
 		self.speakers_list = list(open_file)
+
+		self.n_speakers = len(self.speakers_list)
 
 		self.spk2utt = {}
 

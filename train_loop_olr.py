@@ -2,19 +2,16 @@ import torch
 import torch.nn.functional as F
 
 import numpy as np
-import pickle
 
 import os
-from glob import glob
 from tqdm import tqdm
 
-import torchvision.transforms as transforms
-from PIL import ImageFilter
 from utils.harvester import TripletHarvester
+from utils.losses import LabelSmoothingLoss
 
 class TrainLoop(object):
 
-	def __init__(self, model, optimizer, train_loader, valid_loader, patience, checkpoint_path=None, checkpoint_epoch=None, swap=False, softmax=False, mining=False, cuda=True):
+	def __init__(self, model, optimizer, train_loader, valid_loader, patience, label_smoothing, checkpoint_path=None, checkpoint_epoch=None, swap=False, softmax=False, mining=False, cuda=True):
 		if checkpoint_path is None:
 			# Save to current directory
 			self.checkpoint_path = os.getcwd()
@@ -36,16 +33,16 @@ class TrainLoop(object):
 		self.cur_epoch = 0
 		self.harvester = TripletHarvester()
 
+		if self.softmax:
+			if label_smoothing>0.0:
+				self.ce_criterion = LabelSmoothingLoss(label_smoothing, lbl_set_size=train_loader.dataset.n_speakers)
+			else:
+				self.ce_criterion = torch.nn.CrossEntropyLoss()
+
 		if self.valid_loader is not None:
 			self.history = {'train_loss': [], 'train_loss_batch': [], 'valid_loss': []}
-			self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, factor=0.5, patience=patience, verbose=True, threshold=1e-4, min_lr=1e-6)
 		else:
 			self.history = {'train_loss': [], 'train_loss_batch': []}
-
-			if checkpoint_epoch is not None:
-				self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[10, 50, 100], gamma=0.5, last_epoch=checkpoint_epoch)
-			else:
-				self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[10, 50, 100], gamma=0.5)
 
 		if self.softmax:
 			self.history['softmax_batch']=[]
@@ -97,11 +94,6 @@ class TrainLoop(object):
 				self.history['valid_loss'].append(val_loss/(t+1))
 
 				print('Current validation loss, best validation loss, and epoch: {:0.4f}, {:0.4f}, {}'.format(self.history['valid_loss'][-1], np.min(self.history['valid_loss']), 1+np.argmin(self.history['valid_loss'])))
-
-				self.scheduler.step(self.history['valid_loss'][-1])
-
-			else:
-				self.scheduler.step()
 
 			self.cur_epoch += 1
 
@@ -162,7 +154,7 @@ class TrainLoop(object):
 			if self.cuda_mode:
 				y = y.cuda().squeeze()
 
-			ce = F.cross_entropy(self.model.out_proj(embeddings_norm,y), y)
+			ce = self.ce_criterion(self.model.out_proj(embeddings_norm,y), y)
 			loss += ce
 			loss.backward()
 			self.optimizer.step()

@@ -131,8 +131,6 @@ if __name__ == '__main__':
 	elif args.model == 'FTDNN':
 		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 
-	print(model)
-
 	ckpt = torch.load(args.cp_path, map_location = lambda storage, loc: storage)
 	model.load_state_dict(ckpt['model_state'], strict=True)
 
