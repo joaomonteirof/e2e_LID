@@ -135,6 +135,7 @@ trainer = TrainLoop(model, optimizer, train_loader, valid_loader, label_smoothin
 print(model)
 
 print('\n')
+args_dict = dict(vars(args))
 for arg_key in args_dict:
 	print('{}: {}'.format(arg_key, args_dict[arg_key]))
 print('\n')
