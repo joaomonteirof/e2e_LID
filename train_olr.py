@@ -58,7 +58,6 @@ parser.add_argument('--latent-size', type=int, default=200, metavar='S', help='l
 parser.add_argument('--n-frames', type=int, default=600, metavar='N', help='maximum number of frames per utterance (default: 600)')
 parser.add_argument('--n-cycles', type=int, default=10, metavar='N', help='cycles over speakers list to complete 1 epoch')
 parser.add_argument('--valid-n-cycles', type=int, default=1000, metavar='N', help='cycles over speakers list to complete 1 epoch')
-parser.add_argument('--patience', type=int, default=30, metavar='S', help='Epochs to wait before decreasing LR (default: 30)')
 parser.add_argument('--softmax', choices=['none', 'softmax', 'am_softmax'], default='none', help='Softmax type')
 parser.add_argument('--mine-triplets', action='store_true', default=False, help='Enables distance mining for triplets')
 parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables GPU use')
@@ -131,7 +130,7 @@ if args.cuda:
 
 optimizer = TransformerOptimizer(optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.l2, nesterov=True), lr=args.lr, warmup_steps=args.warmup)
 
-trainer = TrainLoop(model, optimizer, train_loader, valid_loader, patience=args.patience, label_smoothing=args.smoothing, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, swap=args.swap, softmax=args.softmax, mining=args.mine_triplets, label_smoothing=args.smoothing, cuda=args.cuda)
+trainer = TrainLoop(model, optimizer, train_loader, valid_loader, label_smoothing=args.smoothing, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, swap=args.swap, softmax=args.softmax, mining=args.mine_triplets, label_smoothing=args.smoothing, cuda=args.cuda)
 
 print(model)
 
