@@ -135,8 +135,8 @@ trainer = TrainLoop(model, optimizer, train_loader, valid_loader, label_smoothin
 print(model)
 
 print('\n')
-	for arg_key in args_dict:
-		print('{}: {}'.format(arg_key, args_dict[arg_key]))
+for arg_key in args_dict:
+	print('{}: {}'.format(arg_key, args_dict[arg_key]))
 print('\n')
 
 trainer.train(n_epochs=args.epochs, save_every=args.save_every)
