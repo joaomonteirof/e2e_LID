@@ -130,7 +130,7 @@ if args.cuda:
 
 optimizer = TransformerOptimizer(optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.l2, nesterov=True), lr=args.lr, warmup_steps=args.warmup)
 
-trainer = TrainLoop(model, optimizer, train_loader, valid_loader, label_smoothing=args.smoothing, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, swap=args.swap, softmax=args.softmax, mining=args.mine_triplets, label_smoothing=args.smoothing, cuda=args.cuda)
+trainer = TrainLoop(model, optimizer, train_loader, valid_loader, label_smoothing=args.smoothing, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, swap=args.swap, softmax=args.softmax, mining=args.mine_triplets, cuda=args.cuda)
 
 print(model)
 
