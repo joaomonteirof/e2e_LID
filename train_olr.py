@@ -8,7 +8,7 @@ import torch.optim as optim
 import torch.utils.data
 import model as model_
 from data_load import Loader, Loader_softmax, Loader_mining
-from optimizer import TransformerOptimizer
+from utils.optimizer import TransformerOptimizer
 import os
 import sys
 import numpy as np
