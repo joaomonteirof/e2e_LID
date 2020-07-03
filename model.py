@@ -716,31 +716,31 @@ class TDNN(nn.Module):
 	def __init__(self, n_z=256, ncoef=13, proj_size=0, sm_type='none'):
 		super(TDNN, self).__init__()
 
-		self.model = nn.Sequential( nn.Conv1d(ncoef, 512, 5, padding=2),
-			nn.BatchNorm1d(512),
+		self.model = nn.Sequential( nn.Conv1d(ncoef, 512, 5, padding=2, bias=False),
 			nn.ReLU(inplace=True),
-			nn.Conv1d(512, 512, 3, dilation=2, padding=2),
 			nn.BatchNorm1d(512),
+			nn.Conv1d(512, 512, 3, dilation=2, padding=2, bias=False),
 			nn.ReLU(inplace=True),
-			nn.Conv1d(512, 512, 3, dilation=3, padding=3),
 			nn.BatchNorm1d(512),
+			nn.Conv1d(512, 512, 3, dilation=3, padding=3, bias=False),
 			nn.ReLU(inplace=True),
-			nn.Conv1d(512, 512, 1),
 			nn.BatchNorm1d(512),
+			nn.Conv1d(512, 512, 1, bias=False),
 			nn.ReLU(inplace=True),
-			nn.Conv1d(512, 1500, 1),
-			nn.BatchNorm1d(1500),
-			nn.ReLU(inplace=True) )
+			nn.BatchNorm1d(512),
+			nn.Conv1d(512, 1500, 1, bias=False),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(1500) )
 
 		self.pooling = StatisticalPooling()
 
-		self.post_pooling_1 = nn.Sequential(nn.Linear(3000, 512),
-			nn.BatchNorm1d(512),
-			nn.ReLU(inplace=True) )
-
-		self.post_pooling_2 = nn.Sequential(nn.Linear(512, 512),
-			nn.BatchNorm1d(512),
+		self.post_pooling_1 = nn.Sequential(nn.Linear(3000, 512, bias=False),
 			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512) )
+
+		self.post_pooling_2 = nn.Sequential(nn.Linear(512, 512, bias=False),
+			nn.ReLU(inplace=True),
+			nn.BatchNorm1d(512),
 			nn.Linear(512, n_z) )
 
 		if proj_size>0 and sm_type!='none':
@@ -765,19 +765,19 @@ class TDNN_multipool(nn.Module):
 	def __init__(self, n_z=256, ncoef=13, proj_size=0, sm_type='none', n_heads=16):
 		super().__init__()
 
-		self.model_1 = nn.Sequential( nn.Conv1d(ncoef, 512, 5, padding=2),
+		self.model_1 = nn.Sequential( nn.Conv1d(ncoef, 512, 5, padding=2, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
-		self.model_2 = nn.Sequential( nn.Conv1d(512, 512, 5, padding=2),
+		self.model_2 = nn.Sequential( nn.Conv1d(512, 512, 5, padding=2, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
-		self.model_3 = nn.Sequential( nn.Conv1d(512, 512, 5, padding=3),
+		self.model_3 = nn.Sequential( nn.Conv1d(512, 512, 5, padding=3, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
-		self.model_4 = nn.Sequential( nn.Conv1d(512, 512, 7),
+		self.model_4 = nn.Sequential( nn.Conv1d(512, 512, 7, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
-		self.model_5 = nn.Sequential( nn.Conv1d(512, 512, 1),
+		self.model_5 = nn.Sequential( nn.Conv1d(512, 512, 1, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
 
@@ -785,11 +785,11 @@ class TDNN_multipool(nn.Module):
 
 		self.multihead_pooling = nn.TransformerEncoderLayer(d_model=1024, nhead=n_heads, dim_feedforward=512, dropout=0.1)
 
-		self.post_pooling_1 = nn.Sequential(nn.Linear(1024, 512),
+		self.post_pooling_1 = nn.Sequential(nn.Linear(1024, 512, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512) )
 
-		self.post_pooling_2 = nn.Sequential(nn.Linear(512, 512),
+		self.post_pooling_2 = nn.Sequential(nn.Linear(512, 512, bias=False),
 			nn.ReLU(inplace=True),
 			nn.BatchNorm1d(512),
 			nn.Linear(512, n_z) )

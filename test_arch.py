@@ -65,7 +65,7 @@ if args.model == 'TDNN_multipool' or args.model == 'all':
 	batch = torch.rand(3, 1, args.ncoef, 400)
 	model = model_.TDNN_multipool(n_z=args.latent_size, ncoef=args.ncoef)
 	mu = model.forward(batch)
-	print('TDNN', mu.size())
+	print('TDNN_multipool', mu.size())
 if args.model == 'FTDNN' or args.model == 'all':
 	batch = torch.rand(3, 1, args.ncoef, 400)
 	model = model_.FTDNN(n_z=args.latent_size, ncoef=args.ncoef)
