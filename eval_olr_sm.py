@@ -100,6 +100,8 @@ if __name__ == '__main__':
 
 	labels_dict = {'Kazak':0, 'Tibet':1, 'Uyghu':2, 'ct':3, 'id':4, 'ja':5, 'ko':6, 'ru':7, 'vi':8, 'zh':9}
 
+	print(args)
+
 	if args.cp_path is None:
 		raise ValueError('There is no checkpoint/model path. Use arg --cp-path to indicate the path!')
 
