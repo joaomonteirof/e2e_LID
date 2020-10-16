@@ -706,10 +706,10 @@ class lcnn_29layers_v2(nn.Module):
 
 class StatisticalPooling(nn.Module):
 
-	def forward(self, x):
+	def forward(self, x, keep_dim=True):
 		# x is 3-D with axis [B, feats, T]
-		mu = x.mean(dim=2, keepdim=True)
-		std = (x+torch.randn_like(x)*1e-6).std(dim=2, keepdim=True)
+		mu = x.mean(dim=2, keepdim=keep_dim)
+		std = (x+torch.randn_like(x)*1e-6).std(dim=2, keepdim=keep_dim)
 		return torch.cat((mu, std), dim=1)
 
 class TDNN(nn.Module):
@@ -809,19 +809,19 @@ class TDNN_multipool(nn.Module):
 		x = x.squeeze(1)
 
 		x_1 = self.model_1(x)
-		x_pool.append(self.stats_pooling(x_1).unsqueeze(-1))
+		x_pool.append(self.stats_pooling(x_1, False).unsqueeze(-1))
 
 		x_2 = self.model_2(x_1)
-		x_pool.append(self.stats_pooling(x_2).unsqueeze(-1))
+		x_pool.append(self.stats_pooling(x_2, False).unsqueeze(-1))
 
 		x_3 = self.model_3(x_2)
-		x_pool.append(self.stats_pooling(x_3).unsqueeze(-1))
+		x_pool.append(self.stats_pooling(x_3, False).unsqueeze(-1))
 
 		x_4 = self.model_4(x_3)
-		x_pool.append(self.stats_pooling(x_4).unsqueeze(-1))
+		x_pool.append(self.stats_pooling(x_4, False).unsqueeze(-1))
 
 		x_5 = self.model_5(x_4)
-		x_pool.append(self.stats_pooling(x_5).unsqueeze(-1))
+		x_pool.append(self.stats_pooling(x_5, False).unsqueeze(-1))
 
 		x_pool = torch.cat(x_pool, -1).permute(2,0,1)
 
