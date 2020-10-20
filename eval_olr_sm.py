@@ -181,7 +181,7 @@ if __name__ == '__main__':
 	scores = []
 	out_data = []
 
-	with.torch.no_grad():
+	with torch.no_grad():
 
 		for i in range(len(labels)):
 
