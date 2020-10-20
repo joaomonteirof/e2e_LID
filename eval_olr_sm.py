@@ -89,6 +89,7 @@ if __name__ == '__main__':
 	parser.add_argument('--sil-data', type=str, default='./data/', metavar='Path', help='Path to input data with silence')
 	parser.add_argument('--trials-path', type=str, default='./data/trials', metavar='Path', help='Path to trials file')
 	parser.add_argument('--cp-path', type=str, default=None, metavar='Path', help='Path for file containing model')
+	parser.add_argument('--cp-path-2', type=str, default=None, metavar='Path', help='Path for extra model so that scores are to be fused with the main model. The same architecture should be used for both models')
 	parser.add_argument('--model', choices=['mfcc', 'fb', 'resnet_fb', 'resnet_mfcc', 'resnet_lstm', 'resnet_stats', 'lcnn9_mfcc', 'lcnn29_mfcc', 'TDNN', 'TDNN_multipool', 'FTDNN'], default='fb', help='Model arch according to input type')
 	parser.add_argument('--latent-size', type=int, default=200, metavar='S', help='latent layer dimension (default: 200)')
 	parser.add_argument('--ncoef', type=int, default=13, metavar='N', help='number of MFCCs (default: 13)')
@@ -133,6 +134,16 @@ if __name__ == '__main__':
 	elif args.model == 'FTDNN':
 		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 
+	if args.cp_path_2 is not None:
+		model_2 = model.clone()
+		ckpt_2 = torch.load(args.cp_path_2, map_location = lambda storage, loc: storage)
+		model_2.load_state_dict(ckpt_2['model_state'], strict=True)
+		if args.cuda:
+			model_2 = model_2.cuda()
+		model_2.eval()
+	else:
+		model_2 = None
+
 	ckpt = torch.load(args.cp_path, map_location = lambda storage, loc: storage)
 	model.load_state_dict(ckpt['model_state'], strict=True)
 
@@ -170,28 +181,35 @@ if __name__ == '__main__':
 	scores = []
 	out_data = []
 
-	for i in range(len(labels)):
+	with.torch.no_grad():
 
-		test_utt = utterances_test[i]
+		for i in range(len(labels)):
 
-		try:
+			test_utt = utterances_test[i]
 
-			test_utt_data = prep_feats(data[test_utt])
+			try:
 
-			if args.cuda:
-				test_utt_data = test_utt_data.cuda()
-				model = model.cuda()
-			out_sm = model.out_proj( model.forward(test_utt_data) ).detach().cpu()
-		except:
-			test_utt_data = prep_feats(sil_data[test_utt])
+				test_utt_data = prep_feats(data[test_utt])
 
-			if args.cuda:
-				test_utt_data = test_utt_data.cuda()
-				model = model.cuda()
-			out_sm = model.out_proj( model.forward(test_utt_data) ).detach().cpu()
+				if args.cuda:
+					test_utt_data = test_utt_data.cuda()
+					model = model.cuda()
+				out_sm = model.out_proj( model.forward(test_utt_data) ).detach().cpu()
+			except:
+				test_utt_data = prep_feats(sil_data[test_utt])
 
-		scores.append( F.softmax(out_sm.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item() )
-		out_data.append(speakers_enroll[i]+' '+test_utt+' '+str(scores[-1]))
+				if args.cuda:
+					test_utt_data = test_utt_data.cuda()
+					model = model.cuda()
+				out_sm = model.out_proj( model.forward(test_utt_data) ).detach().cpu()
+				score_sm = F.softmax(out_sm.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item()
+				if model_2 is not None:
+					out_sm_2 = model_2.out_proj( model_2.forward(test_utt_data) ).detach().cpu()
+					score_sm_2 = F.softmax(out_sm_2.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item()
+					score_sm = (score_sm + score_sm_2)*0.5
+
+			scores.append( score_sm )
+			out_data.append(speakers_enroll[i]+' '+test_utt+' '+str(scores[-1]))
 
 	print('\nScoring done')
 
