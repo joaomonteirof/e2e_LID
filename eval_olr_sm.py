@@ -135,7 +135,7 @@ if __name__ == '__main__':
 		model = model_.FTDNN(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 
 	if args.cp_path_2 is not None:
-		model_2 = model.clone()
+		model_2 = type(model)(n_z=args.latent_size, proj_size=len(list(labels_dict.keys())), ncoef=args.ncoef, sm_type=args.softmax)
 		ckpt_2 = torch.load(args.cp_path_2, map_location = lambda storage, loc: storage)
 		model_2.load_state_dict(ckpt_2['model_state'], strict=True)
 		if args.cuda:
