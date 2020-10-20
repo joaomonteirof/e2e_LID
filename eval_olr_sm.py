@@ -202,11 +202,12 @@ if __name__ == '__main__':
 					test_utt_data = test_utt_data.cuda()
 					model = model.cuda()
 				out_sm = model.out_proj( model.forward(test_utt_data) ).detach().cpu()
-				score_sm = F.softmax(out_sm.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item()
-				if model_2 is not None:
-					out_sm_2 = model_2.out_proj( model_2.forward(test_utt_data) ).detach().cpu()
-					score_sm_2 = F.softmax(out_sm_2.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item()
-					score_sm = (score_sm + score_sm_2)*0.5
+	
+			score_sm = F.softmax(out_sm.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item()
+			if model_2 is not None:
+				out_sm_2 = model_2.out_proj( model_2.forward(test_utt_data) ).detach().cpu()
+				score_sm_2 = F.softmax(out_sm_2.squeeze(), dim=0)[labels_dict[speakers_enroll[i]]].item()
+				score_sm = (score_sm + score_sm_2)*0.5
 
 			scores.append( score_sm )
 			out_data.append(speakers_enroll[i]+' '+test_utt+' '+str(scores[-1]))
